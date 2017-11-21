@@ -14,6 +14,12 @@ public class GridCell {
     private Location location;
     private Inhabitant inhabitant;
 
+    /**
+     * Constructor for the GridCell
+     * @param grid - reference to the parent grid
+     * @param location - location of the current grid
+     * @param inhabitant - inhabitant to place at the current GridCell
+     */
     public GridCell(Grid grid, Location location, Inhabitant inhabitant) {
         this.grid = grid;
         this.location = location;
@@ -27,5 +33,28 @@ public class GridCell {
      */
     public Optional<Inhabitant> getInhabitant() {
         return Optional.ofNullable(this.inhabitant);
+    }
+
+    /**
+     * Setter for the {@link Inhabitant}
+     * @param inhabitant - given inhabitant
+     */
+    public void setInhabitant(Inhabitant inhabitant){
+        this.inhabitant = inhabitant;
+    }
+
+    /**
+     * Remove the {@link Inhabitant} from the cell
+     */
+    public void removeInhabitant(){
+        this.inhabitant = null;
+    }
+
+    /**
+     * Determine if there is an {@link Inhabitant} at the given cell
+     * @return boolean - whether or not there is an inhabitant present
+     */
+    public boolean isOccupied(){
+        return getInhabitant().isPresent();
     }
 }
