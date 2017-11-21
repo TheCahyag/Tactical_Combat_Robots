@@ -1,8 +1,11 @@
 package grid;
 
+import inhabitant.BenignRobot;
 import inhabitant.Inhabitant;
 
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.Random;
 
 /**
  * File: grid.Grid.java
@@ -25,6 +28,28 @@ public class Grid {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 this.gridCells[i][j] = new GridCell(this, new Location(i, j), null);
+            }
+        }
+    }
+
+    /**
+     * init intialilizes the grid with one target and a number of robots
+     * @param robots - number of {@link BenignRobot}s to add to the grid
+     */
+    public void init(int robots){
+        Random random = new Random();
+        int size = this.size();
+        for (int i = 0; i < robots; i++) {
+            int x = random.nextInt(size);
+            int y = random.nextInt(size);
+            GridCell gc = this.getGridCell(x, y);
+            if (gc.getInhabitant().isPresent()){
+                // GridCell already has a inhabitant
+                i--;
+            } else {
+                // No inhabitant present, making new one
+                Location location = new Location(x, y);
+                this.addInhabitant(new BenignRobot(this, location), location);
             }
         }
     }
@@ -74,4 +99,25 @@ public class Grid {
     public int size(){
         return this.size;
     }
+
+    @Override
+    public String toString() {
+        GridCell[][] gridCells = this.getGridCells();
+        int size = gridCells.length;
+
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                char c;
+                GridCell gridCell = gridCells[i][j];
+                Optional<Inhabitant> inhabitantOptional = gridCell.getInhabitant();
+                c = inhabitantOptional.map(inhabitant ->
+                        inhabitant instanceof BenignRobot ? 'R' : 'T').orElse('*');
+                result.append(c).append(" ");
+            }
+            result.append("\n");
+        }
+        return result.toString();
+    }
+
 }
