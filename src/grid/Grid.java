@@ -2,6 +2,7 @@ package grid;
 
 import inhabitant.BenignRobot;
 import inhabitant.Inhabitant;
+import inhabitant.Target;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -15,10 +16,12 @@ import java.util.Random;
 public class Grid {
     private int size;
     private GridCell[][] gridCells;
-    public ArrayList<Inhabitant> inhabitants;
+    private ArrayList<Inhabitant> inhabitants;
+    private int targets = 0;
+    private int robots = 0;
 
     /**
-     * 
+     *
      * @param size
      */
     public Grid(int size){
@@ -33,23 +36,35 @@ public class Grid {
     }
 
     /**
-     * init intialilizes the grid with one target and a number of robots
+     * init intialilizes the grid with one target and a given number of robots
      * @param robots - number of {@link BenignRobot}s to add to the grid
      */
     public void init(int robots){
         Random random = new Random();
         int size = this.size();
+        // Put the Target on the Grid
+        int x = random.nextInt(size);
+        int y = random.nextInt(size);
+
+        // Since the target is the first inhabitant to be put on the grid,
+        // it is not necessary to check if the space is occupied
+        Location location = new Location(x, y);
+        this.addInhabitant(new Target(this, location), location);
+        this.targets += 1;
+
         for (int i = 0; i < robots; i++) {
-            int x = random.nextInt(size);
-            int y = random.nextInt(size);
+            // Put a number of robots on the grid
+            x = random.nextInt(size);
+            y = random.nextInt(size);
             GridCell gc = this.getGridCell(x, y);
             if (gc.getInhabitant().isPresent()){
                 // GridCell already has a inhabitant
                 i--;
             } else {
                 // No inhabitant present, making new one
-                Location location = new Location(x, y);
+                location = new Location(x, y);
                 this.addInhabitant(new BenignRobot(this, location), location);
+                this.robots += 1;
             }
         }
     }
