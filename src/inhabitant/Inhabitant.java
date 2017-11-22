@@ -13,7 +13,7 @@ public abstract class Inhabitant implements Runnable {
     private Location location;
     private int unitsMoved = 0;
     private Mode status;
-
+    String name; // Set in sub-class
     /**
      * Do nothing constructor does nothing
      */
@@ -52,6 +52,10 @@ public abstract class Inhabitant implements Runnable {
      * @return
      */
     public abstract boolean isTarget();
+
+    public String getName(){
+        return this.name;
+    }
 
     public Grid getGrid() {
         return grid;
