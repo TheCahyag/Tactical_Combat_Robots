@@ -3,8 +3,10 @@ package inhabitant;
 import grid.Grid;
 import grid.GridCell;
 import grid.Location;
+import resource.RobotNames;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * File: inhabitant.BenignRobot.java
@@ -13,11 +15,14 @@ import java.util.ArrayList;
  */
 public class BenignRobot extends Inhabitant {
 
-    ArrayList<Inhabitant.Direction> moves;
+    private ArrayList<Inhabitant.Direction> moves;
 
     public BenignRobot(Grid grid, Location location) {
         super(grid, location);
         this.moves = new ArrayList<>();
+        Random random = new Random();
+        int t = random.nextInt(RobotNames.ROBOT_NAMES.length);
+        this.name = RobotNames.ROBOT_NAMES[t];
     }
 
     @Override
