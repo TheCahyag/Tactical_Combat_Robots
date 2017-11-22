@@ -2,6 +2,9 @@ package inhabitant;
 
 import grid.Grid;
 import grid.Location;
+import resource.TargetNames;
+
+import java.util.Random;
 
 /**
  * File: Target.java
@@ -12,6 +15,9 @@ public class Target extends Inhabitant {
 
     public Target(Grid grid, Location location) {
         super(grid, location);
+        Random random = new Random();
+        int t = random.nextInt(TargetNames.TARGET_NAMES.length);
+        this.name = TargetNames.TARGET_NAMES[t];
     }
 
     @Override
