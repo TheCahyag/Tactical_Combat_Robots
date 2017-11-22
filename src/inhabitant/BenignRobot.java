@@ -16,6 +16,7 @@ import java.util.Random;
 public class BenignRobot extends Inhabitant {
 
     private ArrayList<Inhabitant.Direction> moves;
+    private int unitsMoved = 0;
 
     public BenignRobot(Grid grid, Location location) {
         super(grid, location);
@@ -86,9 +87,18 @@ public class BenignRobot extends Inhabitant {
         if (!newGC.isOccupied()){
             this.getGrid().getGridCell(xOld, yOld).removeInhabitant();
             newGC.setInhabitant(this);
+            this.unitsMoved++;
             return true;
         } else {
             return false;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "BenignRobot '" + this.name + "':\n" +
+                "\tLocation: (" + this.getLocation().getX() + ", " + this.getLocation().getY() + ")\n" +
+                "\tUnits Moved: " + this.unitsMoved + "\n" +
+                "\tStatus: " + this.getStatus();
     }
 }
