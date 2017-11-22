@@ -16,16 +16,22 @@ import java.util.Random;
 public class Grid {
     private int size;
     private GridCell[][] gridCells;
-    private ArrayList<Inhabitant> inhabitants;
+    private ArrayList<Target> targetList;
+    private ArrayList<BenignRobot> robotList;
     private int targets = 0;
     private int robots = 0;
+
+    private static char TARGET = 'T';
+    private static char ROBOT = 'R';
+    private static char EMPTY = '.';
 
     /**
      *
      * @param size
      */
     public Grid(int size){
-        this.inhabitants = new ArrayList<>();
+        this.targetList = new ArrayList<>();
+        this.robotList = new ArrayList<>();
         this.size = size;
         this.gridCells = new GridCell[size][size];
         for (int i = 0; i < size; i++) {
@@ -50,7 +56,7 @@ public class Grid {
         // it is not necessary to check if the space is occupied
         Location location = new Location(x, y);
         this.addInhabitant(new Target(this, location), location);
-        this.targets += 1;
+        this.targets++;
 
         for (int i = 0; i < robots; i++) {
             // Put a number of robots on the grid
@@ -64,7 +70,7 @@ public class Grid {
                 // No inhabitant present, making new one
                 location = new Location(x, y);
                 this.addInhabitant(new BenignRobot(this, location), location);
-                this.robots += 1;
+                this.robots++;
             }
         }
     }
@@ -102,7 +108,11 @@ public class Grid {
      * @param location {@link Location} to put
      */
     public void addInhabitant(Inhabitant inhabitant, Location location){
-        this.inhabitants.add(inhabitant);
+        if (inhabitant instanceof BenignRobot){
+            this.robotList.add(((BenignRobot) inhabitant));
+        } else {
+            this.targetList.add(((Target) inhabitant));
+        }
         GridCell gc = getGridCell(location);
         gc.setInhabitant(inhabitant);
     }
@@ -127,7 +137,7 @@ public class Grid {
                 GridCell gridCell = gridCells[i][j];
                 Optional<Inhabitant> inhabitantOptional = gridCell.getInhabitant();
                 c = inhabitantOptional.map(inhabitant ->
-                        inhabitant instanceof BenignRobot ? 'R' : 'T').orElse('*');
+                        inhabitant instanceof BenignRobot ? ROBOT : TARGET).orElse(EMPTY);
                 result.append(c).append(" ");
             }
             result.append("\n");
