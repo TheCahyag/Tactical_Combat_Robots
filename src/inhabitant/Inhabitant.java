@@ -11,7 +11,6 @@ import grid.Location;
 public abstract class Inhabitant implements Runnable {
     private Grid grid;
     private Location location;
-    private int unitsMoved = 0;
     private Mode status;
     String name; // Set in sub-class
     /**
