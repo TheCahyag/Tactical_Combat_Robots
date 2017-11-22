@@ -29,4 +29,9 @@ public class Target extends Inhabitant {
     public boolean isTarget() {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Target '" + this.name + "' has a location of (" + this.getLocation().getX() + ", " + this.getLocation().getY() + ")";
+    }
 }
