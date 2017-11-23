@@ -13,6 +13,7 @@ public class GridCell {
     private Grid grid;
     private Location location;
     private Inhabitant inhabitant;
+    private boolean searched = false;
 
     /**
      * Constructor for the GridCell
@@ -48,6 +49,22 @@ public class GridCell {
      */
     public void removeInhabitant(){
         this.inhabitant = null;
+    }
+
+    /**
+     * Getter for the searched boolean
+     * @return whether or not this gridcell has been searched
+     */
+    public boolean isSearched() {
+        return searched;
+    }
+
+    /**
+     * Setter for searched boolean
+     * @param searched
+     */
+    void setSearched(boolean searched) {
+        this.searched = searched;
     }
 
     /**
