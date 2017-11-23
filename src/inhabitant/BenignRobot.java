@@ -24,6 +24,7 @@ public class BenignRobot extends Inhabitant {
         Random random = new Random();
         int t = random.nextInt(RobotNames.ROBOT_NAMES.length);
         this.name = RobotNames.ROBOT_NAMES[t];
+        this.setStatus(Mode.SEARCHING);
     }
 
     @Override
@@ -94,10 +95,53 @@ public class BenignRobot extends Inhabitant {
         }
     }
 
+    /**
+     * Getter for unitsMoved
+     * @return int - number of units moved
+     */
+    public int getUnitsMoved() {
+        return unitsMoved;
+    }
+
+    /**
+     * Created padding based on how long the robot name is
+     * @param nameOfRobot the name of the robot
+     * @return a String that is a number of spaces
+     */
+    private String getPadding(String nameOfRobot){
+        String[] heros = RobotNames.ROBOT_NAMES;
+        int longest = 0;
+        for (int i = 0; i < heros.length; i++) {
+            // Find the longest name
+            if (heros[i].length() > longest)
+                longest = heros[i].length();
+        }
+        int tabs = longest / 4;
+        tabs++;
+        int neededSize = (tabs * 4) + 1;
+        int currentSize = nameOfRobot.length() + 2; // +2 for the single quotes
+        int spacesNeeded = neededSize - currentSize;
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < spacesNeeded; i++) {
+            builder.append(" ");
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Like the toString method, just less info
+     * @return 'Robot Name' @ (x, y)
+     */
+    public String info(){
+        return "'" + this.name + "'" + getPadding(this.name) + "@ (" +
+                this.getLocation().getX() + ", " +
+                this.getLocation().getY() + ")";
+    }
+
     @Override
     public String toString() {
         return "BenignRobot '" + this.name + "':\n" +
-                "\tLocation: (" + this.getLocation().getX() + ", " + this.getLocation().getY() + ")\n" +
+                "\tLocation: (" + this.getLocation() + "\n" +
                 "\tUnits Moved: " + this.unitsMoved + "\n" +
                 "\tStatus: " + this.getStatus();
     }
