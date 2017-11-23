@@ -24,10 +24,11 @@ public class Grid {
     private static char TARGET = 'T';
     private static char ROBOT = 'R';
     private static char EMPTY = '.';
+    private static char SEARCHED = '*';
 
     /**
-     *
-     * @param size
+     * Grid constructor
+     * @param size dimension of the grid
      */
     public Grid(int size){
         this.targetList = new ArrayList<>();
@@ -42,7 +43,7 @@ public class Grid {
     }
 
     /**
-     * init intialilizes the grid with one target and a given number of robots
+     * init initializes the grid with one target and a given number of robots
      * @param robots - number of {@link BenignRobot}s to add to the grid
      */
     public void init(int robots){
@@ -115,6 +116,7 @@ public class Grid {
         }
         GridCell gc = getGridCell(location);
         gc.setInhabitant(inhabitant);
+        gc.setSearched(true);
     }
 
     /**
@@ -123,6 +125,57 @@ public class Grid {
      */
     public int size(){
         return this.size;
+    }
+
+    /**
+     * Getter for the {@link Target}
+     * @return Target
+     */
+    public Target getTarget() {
+        return this.targetList.get(0);
+    }
+
+    /**
+     * Getter for the Robot list
+     * @return An ArrayList of BenignRobots
+     */
+    public ArrayList<BenignRobot> getRobots(){
+        return this.robotList;
+    }
+
+    /**
+     * Determines how much of the grid has
+     * been searched by the robots as a percent
+     * @return double - percent searched
+     */
+    private Double percentSearched(){
+        double total = size * size;
+        double searched = 0;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (gridCells[i][j].isSearched())
+                    searched++;
+            }
+        }
+        return (searched / total) * 100;
+    }
+
+    /**
+     * Return statistics about the current Grid in a String format
+     * @return
+     */
+    public String getStatistics(){
+        int totalUnitsMoved = 0;
+        for (BenignRobot robot :
+                this.robotList) {
+            totalUnitsMoved += robot.getUnitsMoved();
+        }
+        return "Grid (" + size + "x" + size + "): \n" +
+                "\tTargets:             " + this.targetList.size() + "\n" +
+                "\tBenign Robots:       " + this.robotList.size() + "\n" +
+                "\t% Searched:          " + percentSearched().shortValue() + "%\n" +
+                "\tTotal Units Moved:   " + totalUnitsMoved + "\n" +
+                "\tAverage Units Moved: " + (totalUnitsMoved / this.robotList.size());
     }
 
     @Override
@@ -137,10 +190,11 @@ public class Grid {
                 GridCell gridCell = gridCells[i][j];
                 Optional<Inhabitant> inhabitantOptional = gridCell.getInhabitant();
                 c = inhabitantOptional.map(inhabitant ->
-                        inhabitant instanceof BenignRobot ? ROBOT : TARGET).orElse(EMPTY);
+                        inhabitant instanceof BenignRobot ? ROBOT : TARGET).orElse(gridCell.isSearched() ? SEARCHED : EMPTY);
                 result.append(c).append(" ");
             }
-            result.append("\n");
+            if (i + 1 < size)
+                result.append("\n");
         }
         return result.toString();
     }
