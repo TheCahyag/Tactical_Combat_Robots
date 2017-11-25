@@ -39,7 +39,13 @@ public class BenignRobot extends Inhabitant {
 
     public void addMove(Inhabitant.Direction direction){
         this.moves.add(0, direction);
-        move(direction);
+    }
+
+    public void executeNextMove(){
+        Direction move = this.moves.get(0);
+        if (move(move)){
+            this.moves.remove(0);
+        }
     }
 
     /**
@@ -54,19 +60,19 @@ public class BenignRobot extends Inhabitant {
         int xNew, yNew;
         switch (direction){
             // Get the coordinates of the new location
-            case NORTH:
+            case WEST:
                 xNew = xOld - 1;
                 yNew = yOld;
                 break;
-            case EAST:
+            case SOUTH:
                 xNew = xOld;
                 yNew = yOld + 1;
                 break;
-            case SOUTH:
+            case EAST:
                 xNew = xOld + 1;
                 yNew = yOld;
                 break;
-            case WEST:
+            case NORTH:
                 xNew = xOld;
                 yNew = yOld - 1;
                 break;
@@ -78,9 +84,8 @@ public class BenignRobot extends Inhabitant {
             // The new location is already occupied
             return false;
         }
-        int gridSize = this.getGrid().size();
-        if (xNew < 0 || yNew < 0 || xNew >= gridSize || yNew >= gridSize){
-            // The new position is out of bounds of the grid
+        if (this.getGrid().isValidLocation(xNew, yNew)) {
+            // Location is out of bounds
             return false;
         }
         setLocation(new Location(xNew, yNew));
@@ -89,10 +94,69 @@ public class BenignRobot extends Inhabitant {
             this.getGrid().getGridCell(xOld, yOld).removeInhabitant();
             newGC.setInhabitant(this);
             this.unitsMoved++;
+            searchPerimeter();
             return true;
         } else {
             return false;
         }
+    }
+
+    /**
+     * Searches the perimeter of the current robot. Searches GridCells
+     * that are North, South, East, and West. If a {@link Target} is found
+     * the {@link #targetFound(int, int)} method is called to tell the other
+     * Robots that the target has been found
+     */
+    private void searchPerimeter(){
+        int x, y;
+        x = this.getLocation().getX();
+        y = this.getLocation().getY();
+        if (getGrid().isValidLocation(x, y - 1)) {
+            // North
+            if (searchGridCell(getGrid().getGridCell(x, y - 1))){
+                // Target present
+                targetFound(x, y - 1);
+            }
+        }
+        if (getGrid().isValidLocation(x, y + 1)) {
+            // Sout
+            if (searchGridCell(getGrid().getGridCell(x, y + 1))){
+                // Target present
+                targetFound(x, y + 1);
+            }
+        }
+        if (getGrid().isValidLocation(x - 1, y)) {
+            // West
+            if (searchGridCell(getGrid().getGridCell(x - 1, y))){
+                // Target present
+                targetFound(x - 1, y);
+            }
+        }
+        if (getGrid().isValidLocation(x + 1, y)) {
+            // East
+            if (searchGridCell(getGrid().getGridCell(x + 1, y))){
+                // Target present
+                targetFound(x + 1, y);
+            }
+        }
+    }
+
+    private void targetFound(int x, int y){
+
+    }
+
+    /**
+     * Search GridCell searches a given GridCell for the target
+     * @param gridCell GridCell to search
+     * @return true if the GridCell contains the {@link Target}
+     */
+    private boolean searchGridCell(GridCell gridCell){
+        if (gridCell.isOccupied()){
+            if (gridCell.getInhabitant().get() instanceof Target){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -141,7 +205,7 @@ public class BenignRobot extends Inhabitant {
     @Override
     public String toString() {
         return "BenignRobot '" + this.name + "':\n" +
-                "\tLocation: (" + this.getLocation() + "\n" +
+                "\tLocation: " + this.getLocation() + "\n" +
                 "\tUnits Moved: " + this.unitsMoved + "\n" +
                 "\tStatus: " + this.getStatus();
     }
