@@ -120,6 +120,24 @@ public class Grid {
     }
 
     /**
+     * Determines if the location given is a valid location on the Grid
+     * @param x x coor
+     * @param y y coor
+     * @return true if it is a valid location
+     */
+    public boolean isValidLocation(int x, int y){
+        if (x < 0 || x >= size) {
+            // X is out of bounds
+            return false;
+        }
+        if (y < 0 || y >= size){
+            // Y is out of bounds
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Dimension of the {@link Grid}
      * @return int - dimension of the grid
      */
@@ -187,7 +205,7 @@ public class Grid {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 char c;
-                GridCell gridCell = gridCells[i][j];
+                GridCell gridCell = gridCells[j][i];
                 Optional<Inhabitant> inhabitantOptional = gridCell.getInhabitant();
                 c = inhabitantOptional.map(inhabitant ->
                         inhabitant instanceof BenignRobot ? ROBOT : TARGET).orElse(gridCell.isSearched() ? SEARCHED : EMPTY);
