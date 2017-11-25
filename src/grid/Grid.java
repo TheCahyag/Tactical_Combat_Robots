@@ -14,7 +14,8 @@ import java.util.Random;
  * @author Brandon Bires-Navel (brandonnavel@outlook.com)
  */
 public class Grid {
-    private int size;
+    private int xDim;
+    private int yDim;
     private GridCell[][] gridCells;
     private ArrayList<Target> targetList;
     private ArrayList<BenignRobot> robotList;
@@ -27,16 +28,18 @@ public class Grid {
     private static char SEARCHED = '*';
 
     /**
-     * Grid constructor
-     * @param size dimension of the grid
+     * Constructor
+     * @param xLen - length of the horizontal dimension
+     * @param yLen - length of the vertical dimension
      */
-    public Grid(int size){
+    public Grid(int xLen, int yLen){
         this.targetList = new ArrayList<>();
         this.robotList = new ArrayList<>();
-        this.size = size;
-        this.gridCells = new GridCell[size][size];
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        this.xDim = xLen;
+        this.yDim = yLen;
+        this.gridCells = new GridCell[xLen][yLen];
+        for (int i = 0; i < xLen; i++) {
+            for (int j = 0; j < yLen; j++) {
                 this.gridCells[i][j] = new GridCell(this, new Location(i, j), null);
             }
         }
@@ -48,10 +51,10 @@ public class Grid {
      */
     public void init(int robots){
         Random random = new Random();
-        int size = this.size();
+
         // Put the Target on the Grid
-        int x = random.nextInt(size);
-        int y = random.nextInt(size);
+        int x = random.nextInt(xDim);
+        int y = random.nextInt(yDim);
 
         // Since the target is the first inhabitant to be put on the grid,
         // it is not necessary to check if the space is occupied
@@ -61,8 +64,8 @@ public class Grid {
 
         for (int i = 0; i < robots; i++) {
             // Put a number of robots on the grid
-            x = random.nextInt(size);
-            y = random.nextInt(size);
+            x = random.nextInt(xDim);
+            y = random.nextInt(yDim);
             GridCell gc = this.getGridCell(x, y);
             if (gc.getInhabitant().isPresent()){
                 // GridCell already has a inhabitant
@@ -126,23 +129,15 @@ public class Grid {
      * @return true if it is a valid location
      */
     public boolean isValidLocation(int x, int y){
-        if (x < 0 || x >= size) {
+        if (x < 0 || x >= xDim) {
             // X is out of bounds
             return false;
         }
-        if (y < 0 || y >= size){
+        if (y < 0 || y >= yDim){
             // Y is out of bounds
             return false;
         }
         return true;
-    }
-
-    /**
-     * Dimension of the {@link Grid}
-     * @return int - dimension of the grid
-     */
-    public int size(){
-        return this.size;
     }
 
     /**
@@ -167,10 +162,10 @@ public class Grid {
      * @return double - percent searched
      */
     private Double percentSearched(){
-        double total = size * size;
+        double total = xDim * yDim;
         double searched = 0;
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (int i = 0; i < xDim; i++) {
+            for (int j = 0; j < yDim; j++) {
                 if (gridCells[i][j].isSearched())
                     searched++;
             }
@@ -188,7 +183,7 @@ public class Grid {
                 this.robotList) {
             totalUnitsMoved += robot.getUnitsMoved();
         }
-        return "Grid (" + size + "x" + size + "): \n" +
+        return "Grid (" + xDim + "x" + yDim + "): \n" +
                 "\tTargets:             " + this.targetList.size() + "\n" +
                 "\tBenign Robots:       " + this.robotList.size() + "\n" +
                 "\t% Searched:          " + percentSearched().shortValue() + "%\n" +
@@ -199,11 +194,10 @@ public class Grid {
     @Override
     public String toString() {
         GridCell[][] gridCells = this.getGridCells();
-        int size = gridCells.length;
 
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (int i = 0; i < yDim; i++) {
+            for (int j = 0; j < xDim; j++) {
                 char c;
                 GridCell gridCell = gridCells[j][i];
                 Optional<Inhabitant> inhabitantOptional = gridCell.getInhabitant();
@@ -211,7 +205,7 @@ public class Grid {
                         inhabitant instanceof BenignRobot ? ROBOT : TARGET).orElse(gridCell.isSearched() ? SEARCHED : EMPTY);
                 result.append(c).append(" ");
             }
-            if (i + 1 < size)
+            if (i + 1 < xDim)
                 result.append("\n");
         }
         return result.toString();
