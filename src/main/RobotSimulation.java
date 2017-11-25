@@ -2,6 +2,7 @@ package main;
 
 import grid.Grid;
 import inhabitant.BenignRobot;
+import inhabitant.Inhabitant;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -13,7 +14,8 @@ import java.util.Scanner;
  */
 public class RobotSimulation {
     private static Grid grid;
-    private static int size;
+    private static int xLen;
+    private static int yLen;
     private static int robots;
     private static boolean isCommandLine = true;
     private static long delay = 1000;
@@ -24,17 +26,21 @@ public class RobotSimulation {
             return;
         }
         try {
-            // Parse S argument (size of grid)
-            size = Integer.parseInt(args[0]);
+            // Parse X argument (horizontal size of grid)
+            xLen = Integer.parseInt(args[0]);
+            // Parse Y argument (vertical size of grid)
+            yLen = Integer.parseInt(args[1]);
             // Parse N argument (number of robots)
-            robots = Integer.parseInt(args[1]);
+            robots = Integer.parseInt(args[2]);
         } catch (NumberFormatException e){
             System.err.println("Failed to parse 'N' argument: not an integer.");
             return;
         }
+
+        // Verify robot argument TODO
         if (args.length > 2) {
-            if (args[2].charAt(1) == 'a') {
-                if (args[1].length() > 2) {
+            if (args[3].charAt(1) == 'a') {
+                if (args[3].length() > 2) {
                     String argNum = args[1].substring(2, args[1].length());
                     try {
                         delay = 1000 * Long.parseLong(argNum);
@@ -51,7 +57,7 @@ public class RobotSimulation {
 
     private static void runSimulation(){
         // Make/init grid
-        grid = new Grid(size);
+        grid = new Grid(xLen, yLen);
         grid.init(robots);
         if (isCommandLine){
             // Start the command line
@@ -82,6 +88,26 @@ public class RobotSimulation {
         String[] args = command.toLowerCase().split(" ");
         switch (args[0]){
             case "step": // Iterate threw the simulation N times
+                int steps = 0;
+                if (args.length > 2){
+                    // To many arguments
+                    System.err.println("Usage: step [N] (Where N is an integer)");
+                    break;
+                }
+                if (args.length == 1){
+                    // N wasn't specified
+                    steps = 1;
+                } else {
+                    // N was specified
+                    try {
+                        steps = Integer.parseInt(args[1]);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Failed to parse N argument: Not an integer.");
+                    }
+                }
+                for (int i = 0; i < steps; i++) {
+                    step();
+                }
                 break;
             case "run":
                 long delay = 1000;
@@ -89,7 +115,7 @@ public class RobotSimulation {
                     try {
                         delay = 1000 * Integer.parseInt(args[1]);
                     } catch (NumberFormatException e){
-                        System.out.println("Failed to parse N argument: Not an integer.");
+                        System.err.println("Failed to parse N argument: Not an integer.");
                         break;
                     }
                 }
@@ -110,19 +136,19 @@ public class RobotSimulation {
                 break;
             case "robot": // Robot N command
                 if (args.length != 2){
-                    System.out.println("Usage: robot N (Where N is an integer)");
+                    System.err.println("Usage: robot N (Where N is an integer)");
                     break;
                 }
                 int robotIndex;
                 try {
                     robotIndex = Integer.parseInt(args[1]);
                 } catch (NumberFormatException e){
-                    System.out.println("Failed to parse N argument: Not an integer.");
+                    System.err.println("Failed to parse N argument: Not an integer.");
                     break;
                 }
                 ArrayList<BenignRobot> theRobots = grid.getRobots();
                 if (theRobots.size() <= robotIndex){
-                    System.out.println("Number provided was invalid. Type 'robots' for indexing");
+                    System.err.println("Number provided was invalid. Type 'robots' for indexing");
                     break;
                 }
                 System.out.println(theRobots.get(robotIndex));
@@ -148,7 +174,7 @@ public class RobotSimulation {
             case "": // Empty line
                 break;
             default:
-                System.out.println("Unrecognized Command: " + command);
+                System.err.println("Unrecognized Command: " + command + ". Type 'help' for a list of commands.");
                 break;
         }
     }
@@ -161,7 +187,13 @@ public class RobotSimulation {
 
     }
 
+    private static void step(){
+        grid.getRobots().get(0).addMove(Inhabitant.Direction.SOUTH);
+        grid.getRobots().get(0).executeNextMove();
+
+    }
+
     private static void printUsage(){
-        System.out.println("Usage: RobotSimulation S R [-a[D]|-c]");
+        System.out.println("Usage: RobotSimulation XDIM YDIM R [-a[D]|-c]");
     }
 }
