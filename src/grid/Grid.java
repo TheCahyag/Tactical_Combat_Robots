@@ -21,6 +21,7 @@ public class Grid {
     private ArrayList<BenignRobot> robotList;
     private int targets = 0;
     private int robots = 0;
+    private int iterations = 0;
 
     private static char TARGET = 'T';
     private static char ROBOT = 'R';
@@ -119,7 +120,8 @@ public class Grid {
         }
         GridCell gc = getGridCell(location);
         gc.setInhabitant(inhabitant);
-        gc.setSearched(true);
+        if (inhabitant instanceof BenignRobot)
+            gc.setSearched(true);
     }
 
     /**
@@ -156,6 +158,10 @@ public class Grid {
         return this.robotList;
     }
 
+    public void incrementIteration(){
+        this.iterations++;
+    }
+
     /**
      * Determines how much of the grid has
      * been searched by the robots as a percent
@@ -187,6 +193,7 @@ public class Grid {
                 "\tTargets:             " + this.targetList.size() + "\n" +
                 "\tBenign Robots:       " + this.robotList.size() + "\n" +
                 "\t% Searched:          " + percentSearched().shortValue() + "%\n" +
+                "\tIterations:          " + this.iterations + "\n" +
                 "\tTotal Units Moved:   " + totalUnitsMoved + "\n" +
                 "\tAverage Units Moved: " + (totalUnitsMoved / this.robotList.size());
     }
