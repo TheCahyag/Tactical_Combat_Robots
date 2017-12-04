@@ -63,7 +63,7 @@ public class GridCell {
      * Setter for searched boolean
      * @param searched
      */
-    void setSearched(boolean searched) {
+    public void setSearched(boolean searched) {
         this.searched = searched;
     }
 
