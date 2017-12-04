@@ -3,16 +3,19 @@ package inhabitant;
 import grid.Grid;
 import grid.Location;
 
+import java.util.Observer;
+
 /**
  * File: inhabitant.Inhabitant.java
  *
  * @author Brandon Bires-Navel (brandonnavel@outlook.com)
  */
-public abstract class Inhabitant implements Runnable {
+public abstract class Inhabitant implements Runnable, Observer {
     private Grid grid;
     private Location location;
     private Mode status;
     String name; // Set in sub-class
+
     /**
      * Do nothing constructor does nothing
      */
