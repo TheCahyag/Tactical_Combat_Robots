@@ -15,7 +15,7 @@ public abstract class Message {
 
     }
 
-    public abstract void parseMessage();
+    public abstract Object parseMessage();
 
     public abstract void sendMessage();
 }
