@@ -2,6 +2,8 @@ package grid;
 
 import inhabitant.Inhabitant;
 
+import java.util.ArrayList;
+
 /**
  * File: PathFinding.java
  *
@@ -18,6 +20,39 @@ public class PathFinding {
      * location to the end location, where Directions[0] is the first move to take
      */
     public static Inhabitant.Direction[] shortestPath(Location start, Location end){
-        return null;
+        ArrayList<Inhabitant.Direction> directions = new ArrayList<>();
+
+        // Vertical moves
+        if (start.getX() > end.getX()){
+            // Need to move West
+            int moves = start.getX() - end.getX();
+            for (int i = 0; i < moves; i++) {
+                directions.add(Inhabitant.Direction.WEST);
+            }
+        } else if (start.getX() < end.getX()){
+            // Need to move East
+            int moves = end.getX() - start.getX();
+            for (int i = 0; i < moves; i++) {
+                directions.add(Inhabitant.Direction.EAST);
+            }
+        }
+
+        // Horizontal moves
+        if (start.getY() > end.getY()){
+            // Need to move North
+            int moves = start.getY() - end.getY();
+            for (int i = 0; i < moves; i++) {
+                directions.add(Inhabitant.Direction.NORTH);
+            }
+        } else if (start.getY() < end.getY()){
+            // Need to move South
+            int moves = end.getY() - start.getY();
+            for (int i = 0; i < moves; i++) {
+                directions.add(Inhabitant.Direction.SOUTH);
+            }
+        }
+        Inhabitant.Direction[] moves = new Inhabitant.Direction[directions.size()];
+        directions.toArray(moves);
+        return moves;
     }
 }
