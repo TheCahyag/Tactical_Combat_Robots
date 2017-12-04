@@ -32,6 +32,7 @@ public class Location {
 
     @Override
     public String toString() {
-        return "(" + x + ", " + y + ")";
+        return "(" + (x + 1) + ", " + (y + 1) + ")";
+        // +1s so the coordinates start at one instead of 0
     }
 }
