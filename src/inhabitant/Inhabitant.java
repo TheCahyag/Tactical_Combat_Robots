@@ -2,6 +2,8 @@ package inhabitant;
 
 import grid.Grid;
 import grid.Location;
+import message.Message;
+import message.Messageable;
 
 import java.util.Observer;
 
@@ -10,7 +12,7 @@ import java.util.Observer;
  *
  * @author Brandon Bires-Navel (brandonnavel@outlook.com)
  */
-public abstract class Inhabitant implements Runnable, Observer {
+public abstract class Inhabitant implements Runnable, Observer, Messageable {
     private Grid grid;
     private Location location;
     private Mode status;
@@ -54,6 +56,9 @@ public abstract class Inhabitant implements Runnable, Observer {
      * @return
      */
     public abstract boolean isTarget();
+
+    @Override
+    public abstract void receiveMessage(Message message);
 
     public String getName(){
         return this.name;
