@@ -2,6 +2,7 @@ package inhabitant;
 
 import grid.Grid;
 import grid.Location;
+import message.Message;
 import resource.TargetNames;
 
 import java.util.Observable;
@@ -29,6 +30,11 @@ public class Target extends Inhabitant {
     @Override
     public void update(Observable o, Object arg) {
         // TODO
+    }
+
+    @Override
+    public void receiveMessage(Message message) {
+        // Do nothing
     }
 
     @Override
