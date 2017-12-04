@@ -4,6 +4,8 @@ import grid.Grid;
 import grid.GridCell;
 import grid.Location;
 import main.RobotSimulation;
+import message.Message;
+import message.TargetFoundMessage;
 import resource.RobotNames;
 
 import java.util.ArrayList;
@@ -19,7 +21,8 @@ public class BenignRobot extends Inhabitant {
 
     private ArrayList<Inhabitant.Direction> moves;
     private int unitsMoved = 0;
-    private int turnsSinceMove;
+    private int turnsSinceMove = 0;
+    private int cellsSearchedThisIteration = 0;
 
     public BenignRobot(Grid grid, Location location) {
         super(grid, location);
@@ -27,20 +30,26 @@ public class BenignRobot extends Inhabitant {
         Random random = new Random();
         int t = random.nextInt(RobotNames.ROBOT_NAMES.length);
         this.name = RobotNames.ROBOT_NAMES[t];
-        this.setStatus(Mode.SEARCHING);
+        this.setStatus(Mode.PASSIVE_SEARCHING);
         grid.addObserver(this);
     }
 
     @Override
     public void run() {
         while (RobotSimulation.running){
-
+            synchronized (getGrid()){
+                try {
+                    getGrid().wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                this.cellsSearchedThisIteration = 0;
+                executeNextMove();
+                if (this.cellsSearchedThisIteration == 0){
+                    activeSearching();
+                }
+            }
         }
-    }
-
-    @Override
-    public boolean isTarget() {
-        return false;
     }
 
     @Override
@@ -48,10 +57,46 @@ public class BenignRobot extends Inhabitant {
         // TODO
     }
 
+    @Override
+    public void receiveMessage(Message message) {
+        if (message instanceof TargetFoundMessage){
+            this.setStatus(Mode.PURSUING);
+            // TODO
+        }
+    }
+
+    /* START: Target methods */
+
+    /**
+     * TODO
+     * @param x x coor
+     * @param y y coor
+     */
+    private void targetFound(int x, int y){
+        Target target = ((Target) getGrid().getGridCell(x, y).getInhabitant().get());
+
+        System.out.println("Robot '" + this.name + "' has found Target '"
+                + target.getName() + "' @ " + target.getLocation());
+    }
+
+    @Override
+    public boolean isTarget() {
+        return false;
+    }
+
+    /* END: Target methods */
+
+    /* START: Moving methods */
+
     public void addMove(Inhabitant.Direction direction){
         this.moves.add(direction);
     }
 
+    /**
+     * Attempts to execute the next move in {@link #moves}, if it can't execute
+     * that particular move, it keeps the move in the list and will try again
+     * on the next iteration
+     */
     public void executeNextMove(){
         if (this.moves.size() != 0) {
             Direction move = this.moves.get(0);
@@ -106,13 +151,18 @@ public class BenignRobot extends Inhabitant {
             this.getGrid().getGridCell(xOld, yOld).removeInhabitant();
             newGC.setInhabitant(this);
             this.unitsMoved++;
-            searchPerimeter();
+            if (this.getStatus() == Mode.PASSIVE_SEARCHING)
+                searchPerimeter();
             return true;
         } else {
             this.turnsSinceMove++;
             return false;
         }
     }
+
+    /* END: Moving methods */
+
+    /* START: Searching methods */
 
     /**
      * Searches the perimeter of the current robot. Searches GridCells
@@ -155,15 +205,13 @@ public class BenignRobot extends Inhabitant {
     }
 
     /**
-     * TODO
-     * @param x x coor
-     * @param y y coor
+     * Switch from Mode.PASSIVE_SEARCHING to Mode.ACTIVE_SEARCHING and find
+     * the closest non-searched cell and travel to it
      */
-    private void targetFound(int x, int y){
-        Target target = ((Target) getGrid().getGridCell(x, y).getInhabitant().get());
+    private void activeSearching(){
+        // Set mode of Robot
+        this.setStatus(Mode.ACTIVE_SEARCHING);
 
-        System.out.println("Robot '" + this.name + "' has found Target '"
-                + target.getName() + "' @ " + target.getLocation());
     }
 
     /**
@@ -175,6 +223,7 @@ public class BenignRobot extends Inhabitant {
         if (!gridCell.isSearched()){
             // Cell hasn't been searched before
             gridCell.setSearched(true);
+            this.cellsSearchedThisIteration++;
             if (gridCell.isOccupied()){
                 // Has something in the cell
                 if (gridCell.getInhabitant().get() instanceof Target){
@@ -186,6 +235,11 @@ public class BenignRobot extends Inhabitant {
         return false;
     }
 
+    /* END: Searching methods */
+
+
+
+
     /**
      * Getter for unitsMoved
      * @return int - number of units moved
@@ -193,6 +247,8 @@ public class BenignRobot extends Inhabitant {
     public int getUnitsMoved() {
         return unitsMoved;
     }
+
+    /* START: toString methods */
 
     /**
      * Created padding based on how long the robot name is
@@ -235,4 +291,6 @@ public class BenignRobot extends Inhabitant {
                 "\tUnits Moved: " + this.unitsMoved + "\n" +
                 "\tStatus: " + this.getStatus();
     }
+
+    /* END: toString methods */
 }
