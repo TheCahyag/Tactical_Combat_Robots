@@ -5,6 +5,7 @@ import inhabitant.Inhabitant;
 import inhabitant.Target;
 
 import java.util.ArrayList;
+import java.util.Observable;
 import java.util.Optional;
 import java.util.Random;
 
@@ -13,7 +14,7 @@ import java.util.Random;
  *
  * @author Brandon Bires-Navel (brandonnavel@outlook.com)
  */
-public class Grid {
+public class Grid extends Observable {
     private int xDim;
     private int yDim;
     private GridCell[][] gridCells;
