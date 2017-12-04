@@ -29,11 +29,15 @@ public abstract class Inhabitant implements Runnable, Observer, Messageable {
     }
 
     /**
-     * Mode defines what the inhabitant is currently doing.
-     * SEARCHING - Searching for the target, if the inhabitant is the target it is defaulted to IN_POSITION
+     * Mode defines what the inhabitant is currently doing. (Target is defaulted to IN_POSITION)
+     * PASSIVE_SEARCHING - Searching for the target using a predefined search algorithm
+     * ACTIVE_SEARCHING - Moving to a specific location to search a specific spot
+     * PURSUING - The target has been found and the robot is moving to be IN_POSITION
+     * IN_POSITION - The robot is in a valid position that surrounds the robot
      */
     public static enum Mode {
-        SEARCHING,
+        PASSIVE_SEARCHING,
+        ACTIVE_SEARCHING,
         PURSUING,
         IN_POSITION
     }
