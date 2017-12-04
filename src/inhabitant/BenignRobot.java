@@ -3,9 +3,11 @@ package inhabitant;
 import grid.Grid;
 import grid.GridCell;
 import grid.Location;
+import main.RobotSimulation;
 import resource.RobotNames;
 
 import java.util.ArrayList;
+import java.util.Observable;
 import java.util.Random;
 
 /**
@@ -17,6 +19,7 @@ public class BenignRobot extends Inhabitant {
 
     private ArrayList<Inhabitant.Direction> moves;
     private int unitsMoved = 0;
+    private int turnsSinceMove;
 
     public BenignRobot(Grid grid, Location location) {
         super(grid, location);
@@ -25,11 +28,14 @@ public class BenignRobot extends Inhabitant {
         int t = random.nextInt(RobotNames.ROBOT_NAMES.length);
         this.name = RobotNames.ROBOT_NAMES[t];
         this.setStatus(Mode.SEARCHING);
+        grid.addObserver(this);
     }
 
     @Override
     public void run() {
+        while (RobotSimulation.running){
 
+        }
     }
 
     @Override
@@ -37,14 +43,21 @@ public class BenignRobot extends Inhabitant {
         return false;
     }
 
+    @Override
+    public void update(Observable o, Object arg) {
+        // TODO
+    }
+
     public void addMove(Inhabitant.Direction direction){
-        this.moves.add(0, direction);
+        this.moves.add(direction);
     }
 
     public void executeNextMove(){
-        Direction move = this.moves.get(0);
-        if (move(move)){
-            this.moves.remove(0);
+        if (this.moves.size() != 0) {
+            Direction move = this.moves.get(0);
+            if (move(move)) {
+                this.moves.remove(0);
+            }
         }
     }
 
@@ -53,8 +66,7 @@ public class BenignRobot extends Inhabitant {
      * @param direction {@link Inhabitant.Direction} (North, East, South, or West)
      * @return boolean - whether the move was able to be done
      */
-    private boolean move(Inhabitant.Direction direction){
-        this.moves.add(direction);
+    private synchronized boolean move(Inhabitant.Direction direction){
         int xOld = this.getLocation().getX();
         int yOld = this.getLocation().getY();
         int xNew, yNew;
@@ -84,7 +96,7 @@ public class BenignRobot extends Inhabitant {
             // The new location is already occupied
             return false;
         }
-        if (this.getGrid().isValidLocation(xNew, yNew)) {
+        if (!this.getGrid().isValidLocation(xNew, yNew)) {
             // Location is out of bounds
             return false;
         }
@@ -97,6 +109,7 @@ public class BenignRobot extends Inhabitant {
             searchPerimeter();
             return true;
         } else {
+            this.turnsSinceMove++;
             return false;
         }
     }
@@ -107,7 +120,7 @@ public class BenignRobot extends Inhabitant {
      * the {@link #targetFound(int, int)} method is called to tell the other
      * Robots that the target has been found
      */
-    private void searchPerimeter(){
+    public void searchPerimeter(){
         int x, y;
         x = this.getLocation().getX();
         y = this.getLocation().getY();
@@ -119,7 +132,7 @@ public class BenignRobot extends Inhabitant {
             }
         }
         if (getGrid().isValidLocation(x, y + 1)) {
-            // Sout
+            // South
             if (searchGridCell(getGrid().getGridCell(x, y + 1))){
                 // Target present
                 targetFound(x, y + 1);
@@ -141,8 +154,16 @@ public class BenignRobot extends Inhabitant {
         }
     }
 
+    /**
+     * TODO
+     * @param x x coor
+     * @param y y coor
+     */
     private void targetFound(int x, int y){
+        Target target = ((Target) getGrid().getGridCell(x, y).getInhabitant().get());
 
+        System.out.println("Robot '" + this.name + "' has found Target '"
+                + target.getName() + "' @ " + target.getLocation());
     }
 
     /**
@@ -151,9 +172,15 @@ public class BenignRobot extends Inhabitant {
      * @return true if the GridCell contains the {@link Target}
      */
     private boolean searchGridCell(GridCell gridCell){
-        if (gridCell.isOccupied()){
-            if (gridCell.getInhabitant().get() instanceof Target){
-                return true;
+        if (!gridCell.isSearched()){
+            // Cell hasn't been searched before
+            gridCell.setSearched(true);
+            if (gridCell.isOccupied()){
+                // Has something in the cell
+                if (gridCell.getInhabitant().get() instanceof Target){
+                    // Is the Target
+                    return true;
+                }
             }
         }
         return false;
@@ -197,9 +224,8 @@ public class BenignRobot extends Inhabitant {
      * @return 'Robot Name' @ (x, y)
      */
     public String info(){
-        return "'" + this.name + "'" + getPadding(this.name) + "@ (" +
-                this.getLocation().getX() + ", " +
-                this.getLocation().getY() + ")";
+        return "'" + this.name + "'" + getPadding(this.name) +
+                "@ " + this.getLocation();
     }
 
     @Override

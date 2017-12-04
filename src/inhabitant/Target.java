@@ -4,6 +4,7 @@ import grid.Grid;
 import grid.Location;
 import resource.TargetNames;
 
+import java.util.Observable;
 import java.util.Random;
 
 /**
@@ -23,6 +24,11 @@ public class Target extends Inhabitant {
     @Override
     public void run() {
 
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        // TODO
     }
 
     @Override
