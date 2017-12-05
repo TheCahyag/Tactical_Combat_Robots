@@ -1,5 +1,6 @@
 package message;
 
+import grid.Location;
 import inhabitant.Inhabitant;
 
 /**
@@ -9,17 +10,20 @@ import inhabitant.Inhabitant;
  */
 public class TargetFoundMessage extends Message {
 
-    public TargetFoundMessage(Inhabitant sender, Inhabitant receiver) {
+    private Location target;
+
+    public TargetFoundMessage(Inhabitant sender, Inhabitant receiver, Location location) {
         super(sender, receiver);
+        this.target = location;
     }
 
     @Override
-    public void parseMessage() {
-
+    public Location parseMessage() {
+        return this.target;
     }
 
     @Override
     public void sendMessage() {
-
+        this.receiver.receiveMessage(this);
     }
 }
