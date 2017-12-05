@@ -3,6 +3,7 @@ package grid;
 import inhabitant.Inhabitant;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 /**
  * File: PathFinding.java
@@ -54,5 +55,95 @@ public class PathFinding {
         Inhabitant.Direction[] moves = new Inhabitant.Direction[directions.size()];
         directions.toArray(moves);
         return moves;
+    }
+
+    /**
+     * TODO
+     * @param startingLocation
+     * @param grid
+     * @return
+     */
+    public static Inhabitant.Direction[] generateMovesToSearch(Location startingLocation, Grid grid){
+        ArrayList<Inhabitant.Direction> directions = new ArrayList<>();
+        Location currentLocation = new Location(startingLocation.getX(), startingLocation.getY());
+        // Init
+        Inhabitant.Direction direction = Inhabitant.Direction.EAST;
+        if (grid.isValidLocation(currentLocation.getDirection(direction))){
+            currentLocation = currentLocation.getDirection(direction);
+            directions.add(direction);
+        }
+        if (grid.isValidLocation(currentLocation.getDirection(direction))){
+            currentLocation = currentLocation.getDirection(direction);
+            directions.add(direction);
+        }
+        direction = Location.getClockWiseDirection(direction);
+
+        if (grid.isValidLocation(currentLocation.getDirection(direction))){
+            currentLocation = currentLocation.getDirection(direction);
+            directions.add(direction);
+        }
+        if (grid.isValidLocation(currentLocation.getDirection(direction))){
+            currentLocation = currentLocation.getDirection(direction);
+            directions.add(direction);
+        }
+        direction = Location.getClockWiseDirection(direction);
+        int dim = grid.getxDim() > grid.getyDim() ? grid.getxDim() : grid.getyDim();
+        for (int i = 2; i < dim; i++) {
+            for (int j = 0; j < (i * 2) + 1; j++) {
+                if (grid.isValidLocation(currentLocation.getDirection(direction))) {
+                    directions.add(direction);
+                    currentLocation = currentLocation.getDirection(direction);
+                } else {
+                    break;
+                }
+            }
+            direction = Location.getClockWiseDirection(direction);
+            for (int j = 0; j < (i * 2) + 1; j++) {
+                if (grid.isValidLocation(currentLocation.getDirection(direction))) {
+                    directions.add(direction);
+                    currentLocation = currentLocation.getDirection(direction);
+                } else {
+                    break;
+                }
+            }
+            direction = Location.getClockWiseDirection(direction);
+        }
+        Inhabitant.Direction[] moves = new Inhabitant.Direction[directions.size()];
+        directions.toArray(moves);
+        return moves;
+    }
+
+    /**
+     * Distance from returns the number of moves it would take to get from one location to another
+     * @param start start location
+     * @param end end location
+     * @return int - number of moves it would take to get from one location to the other
+     */
+    public static int distanceFrom(Location start, Location end){
+        return shortestPath(start, end).length;
+    }
+
+    /**
+     * Find the closest unsearched GridCell
+     * @param home - location of the object looking for a gridcell
+     * @param grid - grid
+     * @return Optional of a Location, given that there is an unsearched cell in the given grid
+     */
+    public static Optional<Location> closestUnsearched(Location home, Grid grid){
+        int shortest = -1;
+        Location locOfShortest = null;
+        for (int i = 0; i < grid.getxDim(); i++) {
+            for (int j = 0; j < grid.getyDim(); j++) {
+                int dist = distanceFrom(home, new Location(i, j));
+                if (!grid.getGridCell(i, j).isSearched()){
+                    // GridCell has not been searched
+                    if (shortest == -1 || shortest > dist){
+                        shortest = dist;
+                        locOfShortest = new Location(i, j);
+                    }
+                }
+            }
+        }
+        return Optional.ofNullable(locOfShortest);
     }
 }
