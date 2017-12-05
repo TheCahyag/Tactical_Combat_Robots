@@ -1,5 +1,7 @@
 package grid;
 
+import inhabitant.Inhabitant;
+
 /**
  * File: grid.Location.java
  *
@@ -12,6 +14,52 @@ public class Location {
     public Location(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    public Location getNorth(){
+        return new Location(this.getX(), this.getY() - 1);
+    }
+
+    public Location getSouth(){
+        return new Location(this.getX(), this.getY() + 1);
+    }
+
+    public Location getWest(){
+        return new Location(this.getX() - 1, this.getY());
+    }
+
+    public Location getEast(){
+        return new Location(this.getX() + 1, this.getY());
+    }
+
+    public Location getDirection(Inhabitant.Direction direction){
+        switch (direction) {
+            case EAST:
+                return getEast();
+            case WEST:
+                return getWest();
+            case NORTH:
+                return getNorth();
+            case SOUTH:
+                return getSouth();
+            default:
+                return null;
+        }
+    }
+
+    public static Inhabitant.Direction getClockWiseDirection(Inhabitant.Direction direction){
+        switch (direction) {
+            case EAST:
+                return Inhabitant.Direction.SOUTH;
+            case WEST:
+                return Inhabitant.Direction.NORTH;
+            case NORTH:
+                return Inhabitant.Direction.EAST;
+            case SOUTH:
+                return Inhabitant.Direction.WEST;
+            default:
+                return null;
+        }
     }
 
     public int getX() {
