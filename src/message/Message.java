@@ -8,8 +8,8 @@ import inhabitant.Inhabitant;
  * @author Brandon Bires-Navel (brandonnavel@outlook.com)
  */
 public abstract class Message {
-    private Inhabitant receiver;
-    private Inhabitant sender;
+    Inhabitant receiver;
+    Inhabitant sender;
 
     public Message(Inhabitant sender, Inhabitant receiver){
 
