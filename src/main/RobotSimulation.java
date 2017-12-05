@@ -1,10 +1,12 @@
 package main;
 
 import grid.Grid;
+import grid.PathFinding;
 import inhabitant.BenignRobot;
 import inhabitant.Inhabitant;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -19,6 +21,8 @@ public class RobotSimulation {
     private static int robots;
     private static boolean isCommandLine = true;
     private static long delay = 1000;
+    public static volatile boolean running = true;
+    private static List<Thread> robotThreads;
 
     public static void main(String[] args) {
         if (args.length == 0){
@@ -59,6 +63,21 @@ public class RobotSimulation {
         // Make/init grid
         grid = new Grid(xLen, yLen);
         grid.init(robots);
+
+        List<BenignRobot> robots = grid.getRobots();
+        for (int i = 0; i < robots.size(); i++) {
+            Inhabitant robot = robots.get(i);
+            Inhabitant.Direction[] directions = PathFinding.generateMovesToSearch(robot.getLocation(), grid);
+            ((BenignRobot) robot).addMoves(directions);
+        }
+        robotThreads = new ArrayList<>();
+        for (int i = 0; i < robots.size(); i++) {
+            robotThreads.add(new Thread(robots.get(i)));
+        }
+        for (int i = 0; i < robotThreads.size(); i++) {
+            robotThreads.get(i).start();
+        }
+
         if (isCommandLine){
             // Start the command line
             commandLineSimulation();
@@ -73,6 +92,7 @@ public class RobotSimulation {
     private static void commandLineSimulation(){
         Scanner in = new Scanner(System.in);
         do {
+            System.out.flush();
             System.out.print("> ");
             if (in.hasNextLine()) {
                 String cmd = in.nextLine();
@@ -88,6 +108,10 @@ public class RobotSimulation {
         String[] args = command.toLowerCase().split(" ");
         switch (args[0]){
             case "step": // Iterate threw the simulation N times
+                if (!running){
+                    System.err.println("The simulation is not/done running.");
+                    break;
+                }
                 int steps = 0;
                 if (args.length > 2){
                     // To many arguments
@@ -110,10 +134,14 @@ public class RobotSimulation {
                 }
                 break;
             case "run":
+                if (!running){
+                    System.err.println("The simulation is not/done running.");
+                    break;
+                }
                 long delay = 1000;
                 if (args.length > 1){
                     try {
-                        delay = 1000 * Integer.parseInt(args[1]);
+                        delay = Integer.parseInt(args[1]);
                     } catch (NumberFormatException e){
                         System.err.println("Failed to parse N argument: Not an integer.");
                         break;
@@ -155,7 +183,7 @@ public class RobotSimulation {
                 break;
             case "help": // Print help message
                 System.out.println("step [N]\t# Step forward N iterations, or one by default");
-                System.out.println("run [N]\t\t# Automatically run the simulation with a delay of N seconds between each iteration, or one by default");
+                System.out.println("run [N]\t\t# Automatically run the simulation with a delay of N milliseconds between each iteration, or 1000 by default");
                 System.out.println("grid\t\t# Display the grid");
                 System.out.println("target\t\t# Display information about the target");
                 System.out.println("robots\t\t# Display the list of robots that are currently on the grid");
@@ -185,12 +213,32 @@ public class RobotSimulation {
      */
     private static void automaticSimulation(long sleepTime){
 
+        do {
+            step();
+            System.out.println(grid);
+            System.out.println();
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } while (running);
+        isCommandLine = true;
+        commandLineSimulation();
     }
 
     private static void step(){
-        grid.getRobots().get(0).addMove(Inhabitant.Direction.SOUTH);
-        grid.getRobots().get(0).executeNextMove();
-
+        synchronized (grid) {
+            grid.notifyAll();
+            grid.incrementIteration();
+            ArrayList<BenignRobot> robots = grid.getRobots();
+            for (int i = 0; i < robots.size(); i++) {
+                // If all robots are in position the simulation is over
+                if (robots.get(i).getStatus() != Inhabitant.Mode.IN_POSITION)
+                    return;
+            }
+            running = false;
+        }
     }
 
     private static void printUsage(){
