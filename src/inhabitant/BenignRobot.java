@@ -3,6 +3,7 @@ package inhabitant;
 import grid.Grid;
 import grid.GridCell;
 import grid.Location;
+import grid.PathFinding;
 import main.RobotSimulation;
 import message.Message;
 import message.TargetFoundMessage;
@@ -10,6 +11,7 @@ import resource.RobotNames;
 
 import java.util.ArrayList;
 import java.util.Observable;
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -23,6 +25,7 @@ public class BenignRobot extends Inhabitant {
     private int unitsMoved = 0;
     private int turnsSinceMove = 0;
     private int cellsSearchedThisIteration = 0;
+    private GridCell gridCellToSearch = null;
 
     public BenignRobot(Grid grid, Location location) {
         super(grid, location);
@@ -45,8 +48,22 @@ public class BenignRobot extends Inhabitant {
                 }
                 this.cellsSearchedThisIteration = 0;
                 executeNextMove();
-                if (this.cellsSearchedThisIteration == 0){
+                if (this.cellsSearchedThisIteration == 0 && getStatus() == Mode.PASSIVE_SEARCHING){
+                    // Transition into an active search mode
                     activeSearching();
+                }
+                if ((getStatus() == Mode.ACTIVE_SEARCHING && this.moves.size() == 0)){
+                    // The robot is out of moves and needs more
+                    findUnsearchedCell();
+                }
+                if (this.gridCellToSearch != null){
+                    if (this.gridCellToSearch.isSearched())
+                        findUnsearchedCell();
+                }
+                if (getStatus() == Mode.PURSUING && turnsSinceMove > 3){
+                    setStatus(Mode.IN_POSITION);
+                    purgeMoves();
+                    // TODO change^^^
                 }
             }
         }
@@ -60,8 +77,14 @@ public class BenignRobot extends Inhabitant {
     @Override
     public void receiveMessage(Message message) {
         if (message instanceof TargetFoundMessage){
+            // Remove the future moves
+            purgeMoves();
+
+            // Set status
             this.setStatus(Mode.PURSUING);
-            // TODO
+
+            // Set moves to get to target
+            Location target = ((TargetFoundMessage) message).parseMessage();
         }
     }
 
@@ -77,6 +100,10 @@ public class BenignRobot extends Inhabitant {
 
         System.out.println("Robot '" + this.name + "' has found Target '"
                 + target.getName() + "' @ " + target.getLocation());
+        ArrayList<BenignRobot> robots = new ArrayList<>();
+        for (int i = 0; i < robots.size(); i++) {
+            new TargetFoundMessage(this, robots.get(i), new Location(x, y)).sendMessage();
+        }
     }
 
     @Override
@@ -87,6 +114,24 @@ public class BenignRobot extends Inhabitant {
     /* END: Target methods */
 
     /* START: Moving methods */
+
+    /**
+     * Remove all moves from the moves list
+     */
+    private void purgeMoves(){
+        this.moves = new ArrayList<>();
+    }
+
+    /**
+     * Add a number of moves to the robot's internal moves list
+     * @param directions Primitive array of Directions
+     */
+    public void addMoves(Direction[] directions){
+        for (Inhabitant.Direction direction :
+                directions) {
+            addMove(direction);
+        }
+    }
 
     public void addMove(Inhabitant.Direction direction){
         this.moves.add(direction);
@@ -137,12 +182,12 @@ public class BenignRobot extends Inhabitant {
                 xNew = -1;
                 yNew = -1;
         }
-        if (this.getGrid().getGridCell(xNew, yNew).getInhabitant().isPresent()){
-            // The new location is already occupied
-            return false;
-        }
         if (!this.getGrid().isValidLocation(xNew, yNew)) {
             // Location is out of bounds
+            return false;
+        }
+        if (this.getGrid().getGridCell(xNew, yNew).getInhabitant().isPresent()){
+            // The new location is already occupied
             return false;
         }
         setLocation(new Location(xNew, yNew));
@@ -151,7 +196,8 @@ public class BenignRobot extends Inhabitant {
             this.getGrid().getGridCell(xOld, yOld).removeInhabitant();
             newGC.setInhabitant(this);
             this.unitsMoved++;
-            if (this.getStatus() == Mode.PASSIVE_SEARCHING)
+            if (getStatus() == Mode.PASSIVE_SEARCHING ||
+                    getStatus() == Mode.ACTIVE_SEARCHING)
                 searchPerimeter();
             return true;
         } else {
@@ -209,9 +255,29 @@ public class BenignRobot extends Inhabitant {
      * the closest non-searched cell and travel to it
      */
     private void activeSearching(){
+        // Remove all future moves
+        purgeMoves();
+
         // Set mode of Robot
         this.setStatus(Mode.ACTIVE_SEARCHING);
 
+        // Set path to that of finding the closest non searched cell
+        findUnsearchedCell();
+    }
+
+    /**
+     * Setup for finding the closest unsearhed cell
+     */
+    private void findUnsearchedCell(){
+        // Set path to that of finding the closest non searched cell
+        Optional<Location> closestLocation = PathFinding.closestUnsearched(getLocation(), getGrid());
+        closestLocation.ifPresent(
+                location -> {
+                    addMoves(PathFinding.generateMovesToSearch(location, getGrid()));
+                    this.gridCellToSearch = getGrid().getGridCell(location);
+                }
+
+        );
     }
 
     /**
@@ -236,9 +302,6 @@ public class BenignRobot extends Inhabitant {
     }
 
     /* END: Searching methods */
-
-
-
 
     /**
      * Getter for unitsMoved
