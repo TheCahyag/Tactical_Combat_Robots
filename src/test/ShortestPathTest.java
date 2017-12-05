@@ -5,11 +5,11 @@ import grid.PathFinding;
 import inhabitant.Inhabitant;
 
 /**
- * File: PathFindingTest.java
+ * File: ShortestPathTest.java
  *
  * @author Brandon Bires-Navel (brandonnavel@outlook.com)
  */
-public class PathFindingTest {
+public class ShortestPathTest {
     public static void main(String[] args) {
         Inhabitant.Direction[] directions = PathFinding.shortestPath(new Location(0, 0), new Location(3, 3));
         for (Inhabitant.Direction direction:
