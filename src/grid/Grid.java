@@ -144,6 +144,15 @@ public class Grid extends Observable {
     }
 
     /**
+     * Overloaded method for isValidLocation that takes in a location
+     * @param location - given location to test
+     * @return true if the location is valid, false otherwise
+     */
+    public boolean isValidLocation(Location location){
+        return isValidLocation(location.getX(), location.getY());
+    }
+
+    /**
      * Getter for the {@link Target}
      * @return Target
      */
@@ -157,6 +166,22 @@ public class Grid extends Observable {
      */
     public ArrayList<BenignRobot> getRobots(){
         return this.robotList;
+    }
+
+    /**
+     * Getter for xDim
+     * @return xDim value
+     */
+    public int getxDim() {
+        return xDim;
+    }
+
+    /**
+     * Getter for yDim
+     * @return yDim value
+     */
+    public int getyDim() {
+        return yDim;
     }
 
     public void incrementIteration(){
