@@ -24,6 +24,7 @@ public class Grid extends Observable {
     private int robots = 0;
     private int iterations = 0;
 
+    /* Visual representations for printing the grid */
     private static char TARGET = 'T';
     private static char ROBOT = 'R';
     private static char EMPTY = '.';
@@ -184,6 +185,9 @@ public class Grid extends Observable {
         return yDim;
     }
 
+    /**
+     * Increment the iteration counter
+     */
     public void incrementIteration(){
         this.iterations++;
     }
@@ -207,7 +211,7 @@ public class Grid extends Observable {
 
     /**
      * Return statistics about the current Grid in a String format
-     * @return
+     * @return String - representing the stats of the current simulation
      */
     public String getStatistics(){
         int totalUnitsMoved = 0;
