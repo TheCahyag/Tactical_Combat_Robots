@@ -58,10 +58,32 @@ public class PathFinding {
     }
 
     /**
-     * TODO
-     * @param startingLocation
-     * @param grid
-     * @return
+     * Generates the moves that a {@link inhabitant.BenignRobot} will take to passively search
+     * the grid. The method will not generate moves that cannot be taken by the Robot.
+     *
+     * The basic pattern of the movements generate follow a clockwise spiral (keeping in mind
+     * the robot can search cells it is adjacent to).
+     *
+     * Imagine a 5x5 grid with a robot at the center:
+     *  .-.-.-.-.
+     *  |
+     *  . . . . .
+     *  |
+     *  . . R-.-.
+     *  |       |
+     *  . . . . .
+     *  |       |
+     *  .-.-.-.-.
+     * The line indicates the path that would be generated for a robot in the following 5x5.
+     * The list of directions includes more then just the path described above, after making
+     * the moves displayed above, it will have locations that move the robot along the edge of
+     * grid, but in the actual simulation these moves won't be taken since after a robot searches
+     * 0 gridcells it will remove all of its moves and find a path to the closest unsearched
+     * gridcell.
+     *
+     * @param startingLocation - Starting location of the robot
+     * @param grid - given {@link Grid} of the simulation
+     * @return Primitive Array of Directions
      */
     public static Inhabitant.Direction[] generateMovesToSearch(Location startingLocation, Grid grid){
         ArrayList<Inhabitant.Direction> directions = new ArrayList<>();
