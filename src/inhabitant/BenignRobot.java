@@ -9,10 +9,7 @@ import message.Message;
 import message.TargetFoundMessage;
 import resource.RobotNames;
 
-import java.util.ArrayList;
-import java.util.Observable;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 /**
  * File: inhabitant.BenignRobot.java
@@ -26,7 +23,14 @@ public class BenignRobot extends Inhabitant {
     private int turnsSinceMove = 0;
     private int cellsSearchedThisIteration = 0;
     private GridCell gridCellToSearch = null;
+    private ArrayList<Message> messages;
+    private boolean hasMovedThisIteration = false;
 
+    /**
+     * BenignRobot constructor, inits a bunch of stuff
+     * @param grid - {@link Grid} for the simulation
+     * @param location - {@link Location} of this new robot
+     */
     public BenignRobot(Grid grid, Location location) {
         super(grid, location);
         this.moves = new ArrayList<>();
@@ -34,6 +38,7 @@ public class BenignRobot extends Inhabitant {
         int t = random.nextInt(RobotNames.ROBOT_NAMES.length);
         this.name = RobotNames.ROBOT_NAMES[t];
         this.setStatus(Mode.PASSIVE_SEARCHING);
+        this.messages = new ArrayList<>();
         grid.addObserver(this);
     }
 
@@ -46,24 +51,47 @@ public class BenignRobot extends Inhabitant {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                if (this.messages.size() != 0) {
+                    // Check for messages
+                    ListIterator<Message> messageListIterator = this.messages.listIterator();
+                    while (messageListIterator.hasNext()){
+                        handleMessage(messageListIterator.next());
+                    }
+                    this.messages = new ArrayList<>();
+                }
+                // Reset values
                 this.cellsSearchedThisIteration = 0;
+                this.hasMovedThisIteration = false;
                 executeNextMove();
-                if (this.cellsSearchedThisIteration == 0 && getStatus() == Mode.PASSIVE_SEARCHING){
-                    // Transition into an active search mode
-                    activeSearching();
-                }
-                if ((getStatus() == Mode.ACTIVE_SEARCHING && this.moves.size() == 0)){
-                    // The robot is out of moves and needs more
-                    findUnsearchedCell();
-                }
-                if (this.gridCellToSearch != null){
-                    if (this.gridCellToSearch.isSearched())
-                        findUnsearchedCell();
-                }
-                if (getStatus() == Mode.PURSUING && turnsSinceMove > 3){
-                    setStatus(Mode.IN_POSITION);
-                    purgeMoves();
-                    // TODO change^^^
+                switch (getStatus()){
+                    case PASSIVE_SEARCHING:
+                        if (this.cellsSearchedThisIteration == 0 && this.hasMovedThisIteration){
+                            // Transition into an active search mode
+                            activeSearching();
+                        }
+                        break;
+                    case ACTIVE_SEARCHING:
+                        if (this.moves.size() == 0){
+                            // The robot is out of moves and needs more
+                            findUnsearchedCell();
+                        }
+                        if (this.gridCellToSearch != null){
+                            if (this.gridCellToSearch.isSearched()) {
+                                // The cell they were looking for got searched by another robot
+                                purgeMoves();
+                                findUnsearchedCell();
+                            }
+                        }
+                        break;
+                    case PURSUING:
+                        if (this.turnsSinceMove > 3){
+                            setStatus(Mode.IN_POSITION);
+                            purgeMoves();
+                            // TODO change^^
+                        }
+                        break;
+                    case IN_POSITION:
+                        break;
                 }
             }
         }
@@ -76,6 +104,14 @@ public class BenignRobot extends Inhabitant {
 
     @Override
     public void receiveMessage(Message message) {
+        this.messages.add(message);
+    }
+
+    /**
+     * Parse a {@link Message} which could be a {@link TargetFoundMessage} or another message
+     * @param message - message to get information from
+     */
+    private void handleMessage(Message message){
         if (message instanceof TargetFoundMessage){
             // Remove the future moves
             purgeMoves();
@@ -85,22 +121,26 @@ public class BenignRobot extends Inhabitant {
 
             // Set moves to get to target
             Location target = ((TargetFoundMessage) message).parseMessage();
+            purgeMoves();
+            this.addMoves(PathFinding.shortestPath(getLocation(), target));
         }
     }
 
     /* START: Target methods */
 
     /**
-     * TODO
-     * @param x x coor
-     * @param y y coor
+     * Print out a message saying the target was found and send a
+     * message to all robots (including this robot) telling them
+     * to pursue the target at the given location
+     * @param x x coor of the target
+     * @param y y coor of the target
      */
     private void targetFound(int x, int y){
         Target target = ((Target) getGrid().getGridCell(x, y).getInhabitant().get());
 
         System.out.println("Robot '" + this.name + "' has found Target '"
                 + target.getName() + "' @ " + target.getLocation());
-        ArrayList<BenignRobot> robots = new ArrayList<>();
+        ArrayList<BenignRobot> robots = getGrid().getRobots();
         for (int i = 0; i < robots.size(); i++) {
             new TargetFoundMessage(this, robots.get(i), new Location(x, y)).sendMessage();
         }
@@ -133,6 +173,10 @@ public class BenignRobot extends Inhabitant {
         }
     }
 
+    /**
+     * Add a move to the Robot's move queue
+     * @param direction - given direction to add
+     */
     public void addMove(Inhabitant.Direction direction){
         this.moves.add(direction);
     }
@@ -184,10 +228,12 @@ public class BenignRobot extends Inhabitant {
         }
         if (!this.getGrid().isValidLocation(xNew, yNew)) {
             // Location is out of bounds
+            this.turnsSinceMove++;
             return false;
         }
         if (this.getGrid().getGridCell(xNew, yNew).getInhabitant().isPresent()){
             // The new location is already occupied
+            this.turnsSinceMove++;
             return false;
         }
         setLocation(new Location(xNew, yNew));
@@ -197,8 +243,10 @@ public class BenignRobot extends Inhabitant {
             newGC.setInhabitant(this);
             this.unitsMoved++;
             if (getStatus() == Mode.PASSIVE_SEARCHING ||
-                    getStatus() == Mode.ACTIVE_SEARCHING)
+                    getStatus() == Mode.ACTIVE_SEARCHING) {
                 searchPerimeter();
+            }
+            this.hasMovedThisIteration = true;
             return true;
         } else {
             this.turnsSinceMove++;
