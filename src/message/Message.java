@@ -12,7 +12,8 @@ public abstract class Message {
     Inhabitant sender;
 
     public Message(Inhabitant sender, Inhabitant receiver){
-
+        this.receiver = receiver;
+        this.sender = sender;
     }
 
     public abstract Object parseMessage();
