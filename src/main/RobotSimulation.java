@@ -37,17 +37,17 @@ public class RobotSimulation {
             // Parse N argument (number of robots)
             robots = Integer.parseInt(args[2]);
         } catch (NumberFormatException e){
-            System.err.println("Failed to parse 'N' argument: not an integer.");
+            System.err.println("Failed to parse argument: not an integer.");
             return;
         }
 
-        // Verify robot argument TODO
+        // Verify robot argument
         if (args.length > 2) {
             if (args[3].charAt(1) == 'a') {
                 if (args[3].length() > 2) {
                     String argNum = args[1].substring(2, args[1].length());
                     try {
-                        delay = 1000 * Long.parseLong(argNum);
+                        delay = Long.parseLong(argNum);
                     } catch (NumberFormatException e) {
                         System.err.println("Failed to parse 'D' argument: not an integer. " +
                                 "Defaulting to 1 second.");
@@ -66,9 +66,10 @@ public class RobotSimulation {
 
         List<BenignRobot> robots = grid.getRobots();
         for (int i = 0; i < robots.size(); i++) {
-            Inhabitant robot = robots.get(i);
+            BenignRobot robot = robots.get(i);
             Inhabitant.Direction[] directions = PathFinding.generateMovesToSearch(robot.getLocation(), grid);
-            ((BenignRobot) robot).addMoves(directions);
+            robot.addMoves(directions);
+            robot.searchPerimeter();
         }
         robotThreads = new ArrayList<>();
         for (int i = 0; i < robots.size(); i++) {
@@ -78,6 +79,7 @@ public class RobotSimulation {
             robotThreads.get(i).start();
         }
 
+        // Pass off to command line or automatic
         if (isCommandLine){
             // Start the command line
             commandLineSimulation();
@@ -85,8 +87,6 @@ public class RobotSimulation {
             // Start the simulation
             automaticSimulation(delay);
         }
-
-        // pass off to command line or automatic
     }
 
     private static void commandLineSimulation(){
@@ -104,7 +104,7 @@ public class RobotSimulation {
         } while (isCommandLine);
     }
 
-    public static void action(String command){
+    private static void action(String command){
         String[] args = command.toLowerCase().split(" ");
         switch (args[0]){
             case "step": // Iterate threw the simulation N times
@@ -135,7 +135,7 @@ public class RobotSimulation {
                 break;
             case "run":
                 if (!running){
-                    System.err.println("The simulation is not/done running.");
+                    System.err.println("The simulation is done running.");
                     break;
                 }
                 long delay = 1000;
@@ -237,6 +237,7 @@ public class RobotSimulation {
                 if (robots.get(i).getStatus() != Inhabitant.Mode.IN_POSITION)
                     return;
             }
+            System.out.println("All robots are in position!");
             running = false;
         }
     }
