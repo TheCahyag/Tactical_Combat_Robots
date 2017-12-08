@@ -71,6 +71,24 @@ public class Location {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Location location = (Location) o;
+
+        if (x != location.x) return false;
+        return y == location.y;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = x;
+        result = 31 * result + y;
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "(" + (x + 1) + ", " + (y + 1) + ")";
         // +1s so the coordinates start at one instead of 0
