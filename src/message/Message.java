@@ -16,6 +16,10 @@ public abstract class Message {
         this.sender = sender;
     }
 
+    public Inhabitant getSender() {
+        return sender;
+    }
+
     public abstract Object parseMessage();
 
     public abstract void sendMessage();
